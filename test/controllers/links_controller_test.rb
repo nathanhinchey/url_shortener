@@ -10,7 +10,7 @@ class LinksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'index should return all links current user has created' do
-    get "/v1/links", headers: auth_header(:creator)
+    get "/api/v1/links", headers: auth_header(:creator)
     body = JSON.parse(response.body)
     assert users(:creator).links.all? do |link|
       body.include?({ "target" => link.target, "slug" => link.slug })
@@ -18,7 +18,7 @@ class LinksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'index should return empty list if current user has created no links' do
-    get "/v1/links", headers: auth_header(:non_creator)
+    get "/api/v1/links", headers: auth_header(:non_creator)
     body = JSON.parse(response.body)
     assert_equal [], body
   end
