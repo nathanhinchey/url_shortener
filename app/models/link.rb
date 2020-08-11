@@ -2,6 +2,9 @@ class Link < ApplicationRecord
   belongs_to :user
 
   validates :slug, uniqueness: true
+  validates :target, presence: true,
+                     format: { with: URI::DEFAULT_PARSER.regexp[:ABS_URI],
+                               allow_blank: true }
 
   after_create :ensure_slug
 

@@ -34,11 +34,13 @@ provided, a slug is generated for you. See _Slugs_ below for more details.
   the bearer token was invalid.
 - **422: Unprocessable Entity**: Something was wrong with the data sent by the
   client. This will reply with an `"errors"` object listing the issues.
-  For example, if the custom slug requested is already in use:
+  For example, if the target is not a valid URL and the custom slug requested
+  is already in use:
   ```JSON
   {
     "errors": {
-      "slug": ["has already been taken"]
+      "slug": ["has already been taken"],
+      "target": ["is invalid"]
       }
   }
   ```
@@ -76,7 +78,6 @@ N/A
   ```
 - **401: Unauthorized**: Means that either no authentication was included or
   the bearer token was invalid.
-
 
 ## Development setup
 ### Requirements

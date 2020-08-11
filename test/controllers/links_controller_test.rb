@@ -105,6 +105,23 @@ class LinksControllerTest < ActionDispatch::IntegrationTest
     assert_equal expected_slug_errors, actual_slug_errors
   end
 
+  test 'create should return an error message for invalid URLs as targets' do
+    target = 'http://this is not a url'
+    params = { target: target }
+    post "/api/v1/links", params: params, headers: auth_header(:creator)
+    actual_target_errors = JSON.parse(response.body)["errors"]["target"]
+    expected_target_errors = ["is invalid"]
+    assert_equal expected_target_errors, actual_target_errors
+  end
+
+  test 'create should return an error message if no target is included' do
+    params = { }
+    post "/api/v1/links", params: params, headers: auth_header(:creator)
+    actual_target_errors = JSON.parse(response.body)["errors"]["target"]
+    expected_target_errors = ["can't be blank"]
+    assert_equal expected_target_errors, actual_target_errors
+  end
+
   # links#destroy
 
   test 'destroy should return 401 for unauthonticated request' do
