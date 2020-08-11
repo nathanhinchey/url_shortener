@@ -11,7 +11,7 @@ class LinksControllerTest < ActionDispatch::IntegrationTest
 
   # links#index
 
-  test '#index should require an authenticated user' do
+  test 'index should reply with 401 when user does not authenticate' do
     get '/api/v1/links'
     assert_response :unauthorized
   end
@@ -44,18 +44,18 @@ class LinksControllerTest < ActionDispatch::IntegrationTest
 
   # links#create
 
-  test '#create should require an authenticated user' do
+  test 'create should return 401 if auth is missing from request' do
     post '/api/v1/links'
     assert_response :unauthorized
   end
 
-  test '#create should accept a target with no custom slug' do
+  test 'create should accept a target with no custom slug' do
     params = { target: 'http://example.com' }
     post "/api/v1/links", params: params, headers: auth_header(:creator)
     assert_response :success
   end
 
-  test '#create with a target and no slug should create a link record' do
+  test 'create with a target and no slug should create a link record' do
     target = 'http://example.com'
     params = { target: target }
     assert_changes -> { Link.find_by(target: target) }, from: nil do
@@ -63,7 +63,7 @@ class LinksControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test '#create should respond with the target and slug on successful creation' do
+  test 'create should respond with the target and slug on successful creation' do
     target = "http://example.com/#{SecureRandom.alphanumeric(5)}"
     params = { target: target }
     post "/api/v1/links", params: params, headers: auth_header(:creator)
@@ -72,7 +72,7 @@ class LinksControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, slug
   end
 
-  test '#create should accept a custom slug' do
+  test 'create should accept a custom slug' do
     target = "http://example.com/#{SecureRandom.alphanumeric(5)}"
     expected_slug = 'my_custom_slug'
     params = { target: target, slug: expected_slug }
@@ -80,18 +80,47 @@ class LinksControllerTest < ActionDispatch::IntegrationTest
     assert_equal expected_slug, Link.find_by(target: target).slug
   end
 
-  test '#create should respond with 201 for successful creation' do
+  test 'create should respond with 201 for successful creation' do
     target = 'http://example.com'
     params = { target: target }
     post "/api/v1/links", params: params, headers: auth_header(:creator)
     assert_response :created
   end
 
-  test '#create should respond with 422 if slug is unavailable' do
+  test 'create should respond with 422 if slug is unavailable' do
     target = 'http://example.com'
     slug = links(:one).slug
     params = { target: target, slug: slug }
     post "/api/v1/links", params: params, headers: auth_header(:creator)
     assert_response :unprocessable_entity
+  end
+
+  # links#destroy
+
+  test 'destroy should return 401 for unauthonticated request' do
+    post '/api/v1/links'
+    assert_response :unauthorized
+  end
+
+  test 'destroy should remove the link record if it belongs to current user' do
+    assert_difference -> { Link.count }, -1 do
+      delete "/api/v1/links/#{links(:one).slug}", headers: auth_header(:creator)
+    end
+  end
+
+  test 'destroy should not remove the link record if it does not belong to current user' do
+    assert_no_difference -> { Link.count } do
+      delete "/api/v1/links/#{links(:one).slug}", headers: auth_header(:non_creator)
+    end
+  end
+
+  test 'destroy should return 403 (forbidden) if the link does not belong to current user' do
+    delete "/api/v1/links/#{links(:one).slug}", headers: auth_header(:non_creator)
+    assert_response :forbidden
+  end
+
+  test 'destroy should return 404 if the link does not exist' do
+    delete '/api/v1/links/not_a_link_yo', headers: auth_header(:non_creator)
+    assert_response :not_found
   end
 end

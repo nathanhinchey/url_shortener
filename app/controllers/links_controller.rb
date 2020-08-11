@@ -7,7 +7,7 @@ class LinksController < ApplicationController
 
   def create
     if Link.find_by(slug: params[:slug])
-      render json: { error: 'slug unavailable' }, status: 422
+      render json: { error: 'slug already in use' }, status: 422
     else
       link = Link.create!(user: current_user, target: params[:target], slug: params[:slug])
       render json: { target: link.target, slug: link.slug }, status: :created
@@ -19,7 +19,18 @@ class LinksController < ApplicationController
     if link
       redirect_to link.target
     else
-      render html: '404: Not Found.', status: :not_found
+      render html: "We don't have a redirect for that. Sorry.", status: :not_found
+    end
+  end
+
+  def destroy
+    link = Link.find_by(slug: params[:id])
+    if !link
+      render json: {error: 'not found'}, status: 404
+    elsif link.user == current_user
+      link.destroy
+    else
+      render json: { error: 'slug belongs to another user' }, status: :forbidden
     end
   end
 end
