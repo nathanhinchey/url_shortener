@@ -95,11 +95,26 @@ class LinksControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
+  test 'create should respond with error message if slug is unavailable' do
+    target = 'http://example.com'
+    slug = links(:one).slug
+    params = { target: target, slug: slug }
+    post "/api/v1/links", params: params, headers: auth_header(:creator)
+    actual_slug_errors = JSON.parse(response.body)["errors"]["slug"]
+    expected_slug_errors = ["has already been taken"]
+    assert_equal expected_slug_errors, actual_slug_errors
+  end
+
   # links#destroy
 
   test 'destroy should return 401 for unauthonticated request' do
     post '/api/v1/links'
     assert_response :unauthorized
+  end
+
+  test 'destroy should return 204 on successful delete' do
+    delete "/api/v1/links/#{links(:one).slug}", headers: auth_header(:creator)
+    assert_response :no_content
   end
 
   test 'destroy should remove the link record if it belongs to current user' do

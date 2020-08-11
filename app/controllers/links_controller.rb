@@ -6,11 +6,11 @@ class LinksController < ApplicationController
   end
 
   def create
-    if Link.find_by(slug: params[:slug])
-      render json: { error: 'slug already in use' }, status: 422
-    else
-      link = Link.create!(user: current_user, target: params[:target], slug: params[:slug])
+    link = Link.create(user: current_user, target: params[:target], slug: params[:slug])
+    if link.valid?
       render json: { target: link.target, slug: link.slug }, status: :created
+    else
+      render json: { errors: link.errors.messages }, status: :unprocessable_entity
     end
   end
 

@@ -1,6 +1,8 @@
 class Link < ApplicationRecord
   belongs_to :user
 
+  validates :slug, uniqueness: true
+
   after_create :ensure_slug
 
   # characters I find easy to distinguish even when hand written
