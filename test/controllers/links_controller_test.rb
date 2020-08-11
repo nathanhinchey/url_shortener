@@ -22,4 +22,14 @@ class LinksControllerTest < ActionDispatch::IntegrationTest
     body = JSON.parse(response.body)
     assert_equal [], body
   end
+
+  test 'should redirect to target from /<slug>' do
+    get "/#{links(:one).slug}"
+    assert_redirected_to links(:one).target
+  end
+
+  test 'should render 404 for unknown slug' do
+    get "/this_slug_cannot_be_found_lol"
+    assert_response :not_found
+  end
 end

@@ -7,4 +7,7 @@ Rails.application.routes.draw do
       resources :links
     end
   end
+
+  # redirecting
+  get '/:slug', to: 'links#slug_redirect'
 end
