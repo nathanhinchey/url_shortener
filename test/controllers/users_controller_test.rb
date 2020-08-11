@@ -56,4 +56,12 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     expected_email_errors = ["has already been taken"]
     assert_equal expected_email_errors, actual_email_errors
   end
+
+  test 'create should return error message if no password is given' do
+    params = { email: 'new_user@example.com' }
+    post '/api/v1/users', params: params
+    actual_password_errors = JSON.parse(response.body)["errors"]["password"]
+    expected_password_errors = ["can't be blank"]
+    assert_equal expected_password_errors, actual_password_errors
+  end
 end
